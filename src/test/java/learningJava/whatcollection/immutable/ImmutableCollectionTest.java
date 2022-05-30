@@ -1,5 +1,6 @@
 package learningJava.whatcollection.immutable;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -25,4 +26,15 @@ public class ImmutableCollectionTest {
 		Assertions.assertThat(immutableList.get(0).getAddress())
 			.isEqualTo(person.getAddress());
 	}
+
+	@Test
+	@DisplayName("Collections.emptyList() 는 비어있는 불변 컬렉션을 리턴한다")
+	public void test() {
+		List<String> emptyList = Collections.emptyList();
+
+		Assertions.assertThatThrownBy(() ->
+			emptyList.add("test"))
+			.isInstanceOf(Exception.class);
+	}
+
 }
