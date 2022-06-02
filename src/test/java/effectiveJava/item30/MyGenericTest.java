@@ -28,25 +28,39 @@ class MyGenericTest {
 	@Test
 	@DisplayName("한정적 와일드 타입 제네릭 메소드를 통해 A 의 하위타입 B,C 에 대한 Set<B> Set<C> 로부터 원소들을 가져와 합친 결과물을 만들 수 있다 ")
 	void test_otherType() {
-		Animals animals = new Animals();
+		// Animals animals = new Animals();
 
 		Set<Carnivore> carnivores = Set.of(new Carnivore("Lion"), new Carnivore("Tiger"));
 		Set<Herbivore> herbivores = Set.of(new Herbivore("코끼맄"), new Herbivore("토끼"));
 
-		animals.union(carnivores);
-		animals.printAll(); // [Animal{name='Lion'}, Animal{name='Tiger'}]
+		Set<Animal> animals = Animals.union(carnivores, herbivores);
 
+		Assertions.assertThat(
+			Animals.hasElementsOfOther(animals, carnivores))
+			.isTrue();
 
-		animals.union(herbivores);
-		animals.printAll(); // [Animal{name='코끼맄'}, Animal{name='Lion'}, Animal{name='토끼'}, Animal{name='Tiger'}]
-
-		Assertions.assertThat(animals.hasElements(carnivores)).isTrue();
-		Assertions.assertThat(animals.hasElements(herbivores)).isTrue();
+		Assertions.assertThat(
+			Animals.hasElementsOfOther(animals, herbivores))
+			.isTrue();
+		// animals.union2(carnivores);
+		// animals.printAll(); // [Animal{name='Lion'}, Animal{name='Tiger'}]
+		//
+		//
+		// animals.union2(herbivores);
+		// animals.printAll(); // [Animal{name='코끼맄'}, Animal{name='Lion'}, Animal{name='토끼'}, Animal{name='Tiger'}]
+		//
+		// Assertions.assertThat(animals.hasElements(carnivores)).isTrue();
+		// Assertions.assertThat(animals.hasElements(herbivores)).isTrue();
 	}
 
 	@Nested
 	@DisplayName("Generic singleton factory 학습")
 	public class GenericSingletonFactory {
+		@Test
+		@DisplayName("")
+		void have_to_convert_type() {
+
+		}
 
 		@Test
 		@DisplayName("타입 세이프한 emptySet 을 생성한다")

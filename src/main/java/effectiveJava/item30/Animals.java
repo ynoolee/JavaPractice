@@ -7,7 +7,22 @@ import java.util.Set;
 public class Animals {
 	private Set<Animal> animals = new HashSet<>();
 
-	public void union(Set<? extends Animal> animals) {
+	public static Set<Animal> union(Set<? extends Animal> set1, Set<? extends Animal> set2) {
+		Set<Animal> animals = new HashSet<>(set1);
+
+		animals.addAll(set2); //     boolean addAll(Collection<? extends E> c);
+
+		return animals;
+	}
+	public static boolean hasElementsOfOther(Collection<? extends Animal> storage, Collection<? extends Animal> target) {
+		return !target.stream()
+			.map(animal ->
+				storage.stream()
+					.anyMatch(argAnimal -> argAnimal.equals(animal))
+			).anyMatch(result -> result == false);
+	}
+
+	public void union2(Set<? extends Animal> animals) {
 		for (Animal animal : animals) {
 			this.animals.add(animal);
 		}
