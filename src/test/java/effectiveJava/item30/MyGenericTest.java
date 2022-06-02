@@ -1,11 +1,14 @@
 package effectiveJava.item30;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.IntStream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class MyGenericTest {
 	@Test
 	@DisplayName("raw type 을 받는 유니온 메소드와 parameterized type 을 받는 유니온 메소드는 동일한 결과물을 만든다")
-	void test(){
+	void test() {
 		Set<String> guys = Set.of("Tom", "Dick", "Harry");
 		Set<String> stooges = Set.of("Larry", "Moe", "Curly");
 
@@ -36,11 +39,11 @@ class MyGenericTest {
 		Set<Animal> animals = Animals.union(carnivores, herbivores);
 
 		Assertions.assertThat(
-			Animals.hasElementsOfOther(animals, carnivores))
+				Animals.hasElementsOfOther(animals, carnivores))
 			.isTrue();
 
 		Assertions.assertThat(
-			Animals.hasElementsOfOther(animals, herbivores))
+				Animals.hasElementsOfOther(animals, herbivores))
 			.isTrue();
 		// animals.union2(carnivores);
 		// animals.printAll(); // [Animal{name='Lion'}, Animal{name='Tiger'}]
@@ -72,6 +75,20 @@ class MyGenericTest {
 		}
 
 		@Test
+		@DisplayName("Collections.emptySet() 은 제네릭 싱글톤 패토리를 리턴한다")
+		void test_singletonFactory() {
+			Set<Carnivore> carnivores = Collections.emptySet();
+			Set<Herbivore> herbivores = Collections.emptySet();
+
+			Assertions.assertThat(carnivores).isEqualTo(herbivores);
+
+			Assertions.assertThatThrownBy(() ->
+					carnivores.add(new Carnivore("Lion")))
+				.isInstanceOf(UnsupportedOperationException.class);
+
+		}
+
+		@Test
 		@DisplayName("String 타입 reverseComparator 를 사용하여 반대방향으로 정렬할 수 있다")
 		void test_reverseOrder() {
 			List<String> cyclopedia = new ArrayList<>();
@@ -84,8 +101,8 @@ class MyGenericTest {
 
 			String firstElementOfOrderedCyclopedia = cyclopedia.get(0);
 
-			int lastIndex = cyclopedia.size()-1;
-			Comparator<String> reverseOrderComparator = Collections.reverseOrder();
+			int lastIndex = cyclopedia.size() - 1;
+			Comparator<String> reverseOrderComparator = Collections.reverseOrder(); // 제네릭 싱글톤 팩토리
 
 			Collections.sort(cyclopedia, reverseOrderComparator);
 
@@ -99,8 +116,21 @@ class MyGenericTest {
 		@DisplayName("커스텀 항등함수")
 		void test_identity() {
 			UnaryOperator<String> objectUnaryOperator = IdentityFunction.identityFunction();
-		}
-	}
+			Function.identity();
 
+			int[] ints = new int[] {1, 2, 3};
+			IntStream intStream = Arrays.stream(ints).asLongStream()
+				.mapToInt(i -> (int)i);
+		}
+
+		// generic parameter type 은 bounded type 으로 선언이 불가능함
+		// private <T> void set(Collection<T extends Animal> t){
+		//
+		// }
+		//
+		// private <T> void set(Collection<? extends Animal> t){
+		//
+		// }
+	}
 
 }
