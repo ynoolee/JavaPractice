@@ -1,4 +1,4 @@
-package effectiveJava.item26;
+package book.effectiveJava.item26;
 
 import java.util.List;
 import java.util.Set;

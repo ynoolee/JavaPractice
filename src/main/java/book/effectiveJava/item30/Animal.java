@@ -1,4 +1,4 @@
-package effectiveJava.item30;
+package book.effectiveJava.item30;
 
 public class Animal {
 	private final String name;

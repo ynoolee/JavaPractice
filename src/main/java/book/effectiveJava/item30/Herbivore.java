@@ -1,4 +1,4 @@
-package effectiveJava.item30;
+package book.effectiveJava.item30;
 
 public class Herbivore extends Animal{
 	public Herbivore(String name) {

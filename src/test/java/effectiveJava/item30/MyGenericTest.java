@@ -15,6 +15,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import book.effectiveJava.item30.Animal;
+import book.effectiveJava.item30.Animals;
+import book.effectiveJava.item30.Carnivore;
+import book.effectiveJava.item30.Herbivore;
+import book.effectiveJava.item30.IdentityFunction;
+import book.effectiveJava.item30.MyGeneric;
+
 class MyGenericTest {
 	@Test
 	@DisplayName("raw type 을 받는 유니온 메소드와 parameterized type 을 받는 유니온 메소드는 동일한 결과물을 만든다")

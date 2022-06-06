@@ -1,4 +1,4 @@
-package effectiveJava.item30;
+package book.effectiveJava.item30;
 
 import java.util.Collection;
 import java.util.HashSet;
