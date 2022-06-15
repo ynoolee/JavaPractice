@@ -22,4 +22,18 @@ class CashTest {
 			.isEqualTo(575f);
 	}
 
+	@Test
+	@DisplayName("Fake 객체를 사용한 테스트")
+	public void testUsingFake() {
+		Exchange exchange = new Exchange.Fake();
+
+		Cash dollar = new Cash(exchange, 500);
+		Cash euro = dollar.in("EUR");
+
+		// 이 때 드는 의문점 -> 결과가 575f 인 거는 어떻게 알아? 이 값은 어디서 나온거야??
+		// -> Fake 를 좀 더 복잡하게 만들어야 한다. 상수 대신, 캡슐화된 비율을 반환하도록
+		Assertions.assertThat(euro.getCents())
+			.isEqualTo(575f);
+	}
+
 }

@@ -5,7 +5,7 @@ interface Exchange {
 	final class Fake implements Exchange {
 		@Override
 		public float rate(String origin, String target) {
-			return 1.2345f;
+			return 1.15f;
 		}
 	}
 }
