@@ -18,14 +18,11 @@ public class CashV2 {
 	// 	);
 	// }
 
-	// 내부구현 변경시 -> 기존의 Mock 을 사용하던 Cash 클래스에 대한 단위 테스트는 실패한다
 	public CashV2 in(String currency) {
 		// 불변객체네
 		return new CashV2(
 			this.exchange, // 모든 객체를 새로 만든다는 것은 아닌 것
-			this.cents * this.exchange.rate(
-				currency
-			)
+			this.cents * this.exchange.rate(currency)
 		);
 	}
 

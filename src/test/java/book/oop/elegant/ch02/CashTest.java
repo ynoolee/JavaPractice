@@ -36,6 +36,18 @@ class CashTest {
 			.isEqualTo(575f);
 	}
 
+	@Test
+	@DisplayName("Fake 객체를 사용한 테스트는 깨지지 않는다")
+	public void notBreakableTestUsingFake() {
+		ExchangeV2 exchange = new ExchangeV2.Fake();
+
+		CashV2 dollar = new CashV2(exchange, 500);
+		CashV2 euro = dollar.in("EUR");
+
+		Assertions.assertThat(euro.getCents())
+			.isEqualTo(575f);
+	}
+
 
 	@Test
 	@DisplayName("Fake 객체를 사용한 테스트")
