@@ -1,9 +1,9 @@
 package book.oop.elegant.ch02;
 
-public class EuroRatio implements Ratio {
+public class Dollar2EuroRatio implements Ratio {
 	private final float ratio;
 
-	public EuroRatio(float ratio) {
+	public Dollar2EuroRatio(float ratio) {
 		this.ratio = ratio;
 	}
 

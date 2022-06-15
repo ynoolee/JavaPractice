@@ -39,15 +39,15 @@ class CashTest {
 	@Test
 	@DisplayName("환율을 주입받은 Fake 객체를 사용한 테스트")
 	public void testUsingRatio() {
-		Ratio euroExchangeRatio = new EuroRatio(1.15f);
-		Exchange exchange = new Exchange.FakeV2(euroExchangeRatio);
+		Ratio dollar2EuroRatio = new Dollar2EuroRatio(1.15f);
+		Exchange exchange = new Exchange.FakeV2(dollar2EuroRatio);
 
 		Cash dollar = new Cash(exchange, 500);
 		Cash euro = dollar.in("EUR");
 
 		// FIXME : 의문점!!
 		Assertions.assertThat(euro.getCents())
-			.isEqualTo(euroExchangeRatio.ratio() * 500); // 이것 역시 Cash 내부에서 구현이 어떻게 되어있는지 알아서 이렇게 작성되는 것이라는 단점...아닌가????
+			.isEqualTo(dollar2EuroRatio.ratio() * 500); // 이것 역시 Cash 내부에서 구현이 어떻게 되어있는지 알아서 이렇게 작성되는 것이라는 단점...아닌가????
 		// 근데 이 경우는, Cash 의 in() 기능을 테스트하려면, 그 계산 결과 값을 알아야만 테스트가 이루어질 수 밖에 없으니 어쩔 수 없는거 아닌가 ??
 	}
 
