@@ -12,41 +12,29 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class PeriodTest {
+
     @Nested
     @DisplayName("동시성 테스트")
     public class ConcurrentTest {
-        private long timeToAdd = 1000L;
 
-        private void modifyStart(Period targetPeriod) {
-            Date start = targetPeriod.start();
-
-            start.setTime(calculatedTime(start.getTime(), timeToAdd));
-        }
-
-        private long calculatedTime(long time, long timeToAdd) {
-            return time + timeToAdd;
-        }
+        private static final long TIME_TO_ADD = 1000L;
 
         @Test
-        @DisplayName("동시에 실행 중인 여러 스레드에서 하나의 Period 를 공유할 경우 예상하지 못한 결과가 발생한다")
-        void testFixedThreadPool() throws Exception {
-            long startTime = 1000L;
+        @DisplayName("동시에 실행 중인 여러 스레드에서 하나의 Period 를 공유할 경우 Periods 내부에 예상하지 못한 값의 변경이 발생한다")
+        void testFixedThreadPool() {
+            long expectedTime = 1000L;
 
-            Period period = new Period(new Date(startTime), new Date(1500));
-            Date startDate = period.start();
+            Period period = new Period(new Date(expectedTime), new Date(expectedTime));
 
             runConcurrentTasks(period);
 
-            Assertions.assertThat(period.start())
-                    .isEqualTo(startDate);
-
             Assertions.assertThat(period.start().getTime())
-                .isNotEqualTo((startTime));
+                .isNotEqualTo((expectedTime));
         }
 
         private void runConcurrentTasks(Period period) {
-            ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(
-                5);
+            ThreadPoolExecutor threadPoolExecutor =
+                (ThreadPoolExecutor) Executors.newFixedThreadPool(5);
 
             IntStream.range(0, 10)
                 .forEach(i ->
@@ -55,9 +43,13 @@ class PeriodTest {
 
 
         private Runnable getTask(Period period) {
-            return () -> {
-                modifyStart(period);
-            };
+            return () -> modifyStart(period);
+        }
+
+        private void modifyStart(Period targetPeriod) {
+            Date start = targetPeriod.start();
+
+            start.setTime( start.getTime() + TIME_TO_ADD); // Date 는 불변객체가 아니기 때문에 값의 변경이 가능하다
         }
 
         private void shutDownAndWaitUntilTerminated(ExecutorService executorService) {
