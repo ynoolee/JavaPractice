@@ -38,7 +38,7 @@ class SetListTest {
                 setList.removeFromSet(numb);
 
                 Assertions.assertThat(
-                        setList.isContainInSet(numb)) // 제거 되어 contain 여부 확인시 false 를 리턴한다
+                        setList.isContainedInSet(numb)) // 제거 되어 contain 여부 확인시 false 를 리턴한다
                     .isFalse();
             }
         }
@@ -49,7 +49,7 @@ class SetListTest {
             for (int numb : toBeRemoved) {
                 setList.removeFromList(numb);
 
-                Assertions.assertThat(setList.isContainInList(numb))
+                Assertions.assertThat(setList.isContainedInList(numb))
                     .isTrue();
             }
         }
@@ -63,9 +63,9 @@ class SetListTest {
         @DisplayName("S Set 의 remove 를 호출하면, 해당 매개변수에 해당하는 원소를 제거한다")
         void removeFromSetSuccess() {
             for (int numb : toBeRemoved) {
-                setList.removeFromSet(numb);
+                setList.removeFromSet(Integer.valueOf(numb)); // 일부러 상황을 명시적으로 보여주기 위해 boxing 을 해 주었음 ( 호출된 메소드에서는 unboxing 이 일어남)
 
-                Assertions.assertThat(setList.isContainInSet(numb))
+                Assertions.assertThat(setList.isContainedInSet(numb))
                     .isFalse();
             }
         }
@@ -74,9 +74,9 @@ class SetListTest {
         @DisplayName("S List 의 remove 를 호출하면, 해당 매개변수에 해당하는 값을 가진 원소를 제거한다")
         void removeFromSetFail() {
             for (int numb : toBeRemoved) {
-                setList.removeFromListUsingInteger(numb);
+                setList.removeFromListUsingInteger(Integer.valueOf(numb)); // 일부러 상황을 명시적으로 보여주기 위해 boxing 을 해 주었음 ( 호출된 메소드에서는 래퍼타입을 사용)
 
-                Assertions.assertThat(setList.isContainInList(numb))
+                Assertions.assertThat(setList.isContainedInList(numb))
                     .isFalse();
             }
         }

@@ -34,11 +34,11 @@ public class SetList {
         list.remove(numb);
     }
 
-    public boolean isContainInSet(int numb) {
+    public boolean isContainedInSet(int numb) {
         return this.set.contains(numb);
     }
 
-    public boolean isContainInList(int numb) {
+    public boolean isContainedInList(int numb) {
         return this.list.contains(numb); // O(n)
     }
 }
