@@ -1,4 +1,4 @@
-package book.effectiveJava.item53;
+package book.effectiveJava.ch08.item53;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;

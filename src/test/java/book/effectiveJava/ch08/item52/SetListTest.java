@@ -1,4 +1,4 @@
-package book.effectiveJava.item52;
+package book.effectiveJava.ch08.item52;
 
 import java.util.ArrayList;
 import java.util.TreeSet;

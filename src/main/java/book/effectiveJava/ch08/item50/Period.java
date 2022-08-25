@@ -1,4 +1,4 @@
-package book.effectiveJava.item50;
+package book.effectiveJava.ch08.item50;
 
 import java.util.Date;
 
