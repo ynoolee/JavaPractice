@@ -1,4 +1,4 @@
-package book.effectiveJava.ch11;
+package book.effectiveJava.ch11.item78;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
