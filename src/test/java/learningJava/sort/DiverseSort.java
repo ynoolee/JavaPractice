@@ -3,6 +3,7 @@ package learningJava.sort;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class DiverseSort {
@@ -24,11 +25,33 @@ public class DiverseSort {
 //        bubbleSort(arr);
 //        insertionSort(arr);
 //        mergeSort(0, arr.length - 1, arr);
+        radixSort(arr);
 
         for (int i : arr) {
             System.out.println(i);
         }
 
+    }
+
+    private void radixSort(int[] arr) {
+        int curIdx = 0; // arr 에 채워넣는데 사용할 index
+        // 최대 값을 구한다
+        int max = Arrays.stream(arr)
+            .max()
+            .orElse(0);
+        // 배열을 할당한다
+        int[] temp = new int[max + 1];
+
+        // 각 데이터의 개수를 카운트 한다
+        Arrays.stream(arr)
+            .forEach(data -> temp[data]++);
+
+        // 정렬한다
+        for(int idx = temp.length - 1; idx >= 0; idx--) {
+            if(temp[idx] > 0) {
+                arr[curIdx++] = idx;
+            }
+        }
     }
 
     private void mergeSort(int start, int end, int[] arr) {
