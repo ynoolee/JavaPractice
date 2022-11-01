@@ -31,6 +31,50 @@ public class DiverseSort {
 
     }
 
+    private void mergeSort(int start, int end, int[] arr) {
+        if (start >= end) {
+            return;
+        }
+
+        int mid = (start + end) / 2;
+
+        mergeSort(start, mid, arr);
+        mergeSort(mid + 1, end, arr);
+
+        merge(start, mid + 1, mid, end, arr);
+    }
+
+    // halve 1 : s1 ~ e1
+    // halve 2 : s2 ~ e2
+    private void merge(int s1, int s2, int e1, int e2, int[] arr) {
+        int[] temp = new int[e2 - s1 + 1];
+
+        int h1 = s1;
+        int h2 = s2;
+
+        int cur = 0;
+
+        // 두 반조각을 비교하며 temp array 에 채워넣는다
+        while (h1 <= e1 && h2 <= e2) {
+            if (arr[h1] >= arr[h2]) {
+                temp[cur++] = arr[h1++];
+            } else {
+                temp[cur++] = arr[h2++];
+            }
+        }
+
+        while (cur < temp.length) {
+            // 남은 반조각
+            while (h1 <= e1) {
+                temp[cur++] = arr[h1++];
+            }
+            while (h2 <= e2) {
+                temp[cur++] = arr[h2++];
+            }
+        }
+        // copy
+        System.arraycopy(temp, 0, arr, s1, temp.length);
+    }
 
     // 내림차순을 가정
     private void bubbleSort(int[] arr) {
