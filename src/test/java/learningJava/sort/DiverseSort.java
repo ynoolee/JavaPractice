@@ -31,6 +31,33 @@ public class DiverseSort {
 
     }
 
+    // 내림차순
+    private void insertionSort(int[] arr) {
+        int len = arr.length;
+
+        for (int unsorted = 0; unsorted < len; unsorted++) {
+            int temp = arr[unsorted]; // 밀어넣는 과정이 있기 때문에, 이 값은 임시저장소에 저장 해 두어야 한다
+
+            for (int sorted = unsorted - 1; sorted >= 0; sorted--) {
+                // 삽입 위치를 찾은 경우
+                if (arr[sorted] > temp) {
+                    arr[sorted + 1] = temp;
+                    break;
+                } else {
+                    // 못 찾은 경우 한 칸씩 이동
+                    arr[sorted + 1] = arr[sorted];
+                }
+            }
+        }
+    }
+
+    private void print(int[] arr) {
+        for (int j : arr) {
+            System.out.print(j + ", ");
+        }
+        System.out.println();
+    }
+
     private void selectionSort(int[] arr) {
         int start = 0; // 아직 처리되지 않은 영역의 맨 앞
 
