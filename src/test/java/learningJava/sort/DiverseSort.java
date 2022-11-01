@@ -31,6 +31,24 @@ public class DiverseSort {
 
     }
 
+
+    // 내림차순을 가정
+    private void bubbleSort(int[] arr) {
+        int len = arr.length;
+        boolean swap = true;
+
+        while (swap) {
+            swap = false;
+            for (int idx = 0; idx < len - 1; idx++) {
+                if (arr[idx] < arr[idx + 1]) {
+                    swap(arr, idx, idx + 1);
+                    swap = true;
+                }
+            }
+            print(arr);
+        }
+    }
+
     // 내림차순
     private void insertionSort(int[] arr) {
         int len = arr.length;
