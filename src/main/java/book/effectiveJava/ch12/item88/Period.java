@@ -49,6 +49,15 @@ public final class Period implements Serializable {
         }
     }
 
+    // 참조 값 만을 확인하기 위해 아래 코드를 추가
+    public int startCode() {
+        return this.start.hashCode();
+    }
+
+    public int endCode() {
+        return this.end.hashCode();
+    }
+
     // Repaired accessors - make defensive copies of internal fields (Page 233)
     public Date start() {
         return new Date(start.getTime());
