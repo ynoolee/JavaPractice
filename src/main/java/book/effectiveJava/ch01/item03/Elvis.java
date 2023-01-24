@@ -1,5 +1,6 @@
 package book.effectiveJava.ch01.item03;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class Elvis implements Serializable {
@@ -14,5 +15,10 @@ public class Elvis implements Serializable {
 //        }
 //
 //        created = true;
+    }
+
+    @Serial
+    private Object readResolve() {
+        return INSTANCE;
     }
 }

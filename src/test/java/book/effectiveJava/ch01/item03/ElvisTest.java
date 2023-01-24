@@ -27,7 +27,7 @@ class ElvisTest {
             Elvis elvis3 = (Elvis) in.readObject();
 
             Assertions.assertThat(elvis3)
-                .isNotEqualTo(Elvis.INSTANCE);
+                .isEqualTo(Elvis.INSTANCE);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
