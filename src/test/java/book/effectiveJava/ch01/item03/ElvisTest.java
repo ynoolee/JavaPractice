@@ -9,20 +9,20 @@ import org.junit.jupiter.api.Test;
 class ElvisTest {
 
     @Test
-    @DisplayName("reflection 을 통해 private 생성자를 통해 싱글톤 객체를 깨트릴 수 있다")
+    @DisplayName("reflection 을 통해 private 생성자를 직접 호출 할 경우, 싱글톤 객체에서는 예외를 발생한다")
     public void given_defaultConstructor_whenCallConstructor_thenNewInstance() {
 
         try {
             Constructor<Elvis> defaultConstructor = Elvis.class.getDeclaredConstructor();
             defaultConstructor.setAccessible(true);
 
-            Elvis elvis1 = defaultConstructor.newInstance();
-            Elvis elvis2 = defaultConstructor.newInstance();
+            Assertions.assertThatExceptionOfType(InvocationTargetException.class)
+                .isThrownBy(defaultConstructor::newInstance)
+                .withCauseExactlyInstanceOf(UnsupportedOperationException.class);
 
-            Assertions.assertThat(elvis1)
-                .isNotEqualTo(elvis2);
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException e) {
             e.printStackTrace();
         }
     }
+
 }
