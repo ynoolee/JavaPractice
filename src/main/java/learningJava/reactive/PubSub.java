@@ -26,6 +26,11 @@ OnSubscribe(1번) onNext*(여러 번 가능) (onError | onComplete)?(선택적�
 즉 onSubscribe 는 subscribe 를 하는 즉시 호출해 줘야 한다.
 
 event 에 대응하는 방식이다.
+
+Reactive Streams
+- 더 나은 옵저버 패턴인 Observable
+- Scheduler ( 비동기적으로 또는 동시에 병렬적으로 작업 처리 )
+Iterable 을 사용하지 않고 이것을 사용하는 것은 동시성을 가지고 복잡하게 처리해 주는 코드를 간결하게 만들기 위해 사용하는 것이다.
 * */
 public class PubSub {
 
@@ -97,6 +102,7 @@ public class PubSub {
                 System.out.println("onNext " + item);
 
                 this.subscription.request(1);
+                // onNext 에서는 Subscriber 의 상황에 따라, 다음 request 를 호출할지 말지를 결정하도록 코드를 작성할 수도있다
             }
 
             // Observer 와 달리 Complete 에 대한 처리가 가능함
