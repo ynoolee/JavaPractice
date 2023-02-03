@@ -64,14 +64,18 @@ public class PubSub {
 //                                break;
 //                            }
 //                        }
-
-                        while (n-- > 0) {
-                            if (i.hasNext()) {
-                                subscriber.onNext(i.next());
-                            } else {
-                                subscriber.onComplete();
-                                break;
+                        try {
+                            while (n-- > 0) {
+                                if (i.hasNext()) {
+                                    subscriber.onNext(i.next());
+                                } else {
+                                    subscriber.onComplete();
+                                    break;
+                                }
                             }
+                        } catch(Exception e) {
+                            // Publisher 쪽에서 에러 난 경우 -> Subscriber 는 갑자기 에러가 확 날라오는게 아니라, onError 라는 것을 통해 (우아하게) 날아옴.
+                            subscriber.onError(e);
                         }
 
                     }
@@ -108,6 +112,7 @@ public class PubSub {
             // Observer 와 달리 Complete 에 대한 처리가 가능함
             @Override
             public void onError(Throwable throwable) {
+                // 그럼 에러를 받아보고, 현재 Subscriber 상태에 따라, 처리 가능한 것인지 등등을 판단해보고 처리 할 수 있을 것. ( 재시도를 할 수도 있고 )
                 System.out.println("onError");
             }
 
