@@ -18,19 +18,20 @@ reactive-streams 공식문서 볼수 있다. reactive streams 에 대한 표준.
 
 Publisher 와 Subscriber 가 두 가지 핵심 컴포넌트들이다
 
-공식 문서에 따르면 (https://github.com/reactive-streams/reactive-streams-jvm#api-components)
+* 공식 문서에 따르면 (https://github.com/reactive-streams/reactive-streams-jvm#api-components)
 
 Publisher.subscribe(subscriber) 의 호출에 대한 응답으로 가능한 호출 시퀀스는 다음 프로토콜을 따르도록 한다
 OnSubscribe(1번) onNext*(여러 번 가능) (onError | onComplete)?(선택적으로)
 
 즉 onSubscribe 는 subscribe 를 하는 즉시 호출해 줘야 한다.
-
+*
 event 에 대응하는 방식이다.
 
 Reactive Streams
 - 더 나은 옵저버 패턴인 Observable
 - Scheduler ( 비동기적으로 또는 동시에 병렬적으로 작업 처리 )
-Iterable 을 사용하지 않고 이것을 사용하는 것은 동시성을 가지고 복잡하게 처리해 주는 코드를 간결하게 만들기 위해 사용하는 것이다.
+
+사실 이것만 보면 Iterable 을 사용해서 serial 하게 처리할 수도 있는 거겠지만, "동시성을 갖고 복잡하게 처리하는 코드" 를 간결하게 작성할 수 있도록 하는 것이 우리가 배우는 reactive stream 이다
 * */
 public class PubSub {
 
@@ -90,6 +91,7 @@ public class PubSub {
 
         // Subscription 을 통해 Publisher 와 계속 관계를 맺고 있을 수 있는건가?
         Subscriber<Object> subscriber = new Subscriber<>() {
+            // 구독정보 Subscription 을 저장해두고
             Subscription subscription;
 
             @Override
@@ -104,7 +106,9 @@ public class PubSub {
             @Override
             public void onNext(Object item) {
                 System.out.println("onNext " + item);
-
+                // 뭔가 복잡한 처리 - Subscriber 의 현재 상황을 계산 -> 다음 request 로 요청할 n 값 계산
+                // 버퍼를 절반정도로 유지하도록 request 를 하게 코드를 작성하는 등
+                // 뒤에는 스케줄러가 등장함 -> 비동기적으로 병렬적으로 작업을 수행할 수 있다.
                 this.subscription.request(1);
                 // onNext 에서는 Subscriber 의 상황에 따라, 다음 request 를 호출할지 말지를 결정하도록 코드를 작성할 수도있다
             }

@@ -65,6 +65,8 @@ public class Ob {
 
         @Override
         public void run() {
+            System.out.println(
+                String.format("Observable Push Events - Thread :%s ", Thread.currentThread()));
             for (int i = 1; i <= 10; i++) {
                 setChanged();
                 notifyObservers(i);
@@ -103,11 +105,26 @@ public class Ob {
         IntObservable io = new IntObservable();
         io.addObserver(observer);
 
-        ExecutorService es = Executors.newSingleThreadExecutor();
-        es.execute(io);
+        ExecutorService es = Executors.newFixedThreadPool(10);
+        es.execute(io); // 여기서 이렇게 executorService 에 Task 로 전달하려고 IntObservable 을 Runnable 을 구현하였음. 이벤트 발송 작업을 이렇게 비동기로 실행하면 -> 이벤트를 받는 Observer 들 역시 비동기로 받는다 (그런데 현재 스레드 출력해보니, 발급 스레드와 받는 스레드가 동일한 것 같다)
 
         System.out.println(String.format("Thread :%s", Thread.currentThread()));
         es.shutdown();
+
+        /**
+         * Thread :Thread[main,5,main]
+         * Observable Push Events - Thread :Thread[pool-1-thread-1,5,main]
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 1
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 2
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 3
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 4
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 5
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 6
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 7
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 8
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 9
+         * Thread :Thread[pool-1-thread-1,5,main],  arg: 10
+         * */
     }
 
 
