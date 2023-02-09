@@ -2,9 +2,12 @@ package learningJava.reactive.streams;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
+import java.util.concurrent.TimeUnit;
 
 /*
 Observer pattern 의 문제점
@@ -35,7 +38,8 @@ Reactive Streams
 * */
 public class PubSub {
 
-    public static void one() {
+    public static void one() throws InterruptedException {
+        ExecutorService es = Executors.newSingleThreadExecutor();
         // Observable --> Publisher
         // Observer -> Subscriber
 
@@ -55,7 +59,7 @@ public class PubSub {
                 subscriber.onSubscribe(new Subscription() {
 
                     @Override
-                    public void request(long n) {
+                    public void request(final long n) {
                         // 이렇게 하면 n 과 상관없이 onNext 를 여러번 호출하게 되는 것이고
 //                        while(true) {
 //                            if (i.hasNext()) {
@@ -65,19 +69,50 @@ public class PubSub {
 //                                break;
 //                            }
 //                        }
-                        try {
-                            while (n-- > 0) {
-                                if (i.hasNext()) {
-                                    subscriber.onNext(i.next());
-                                } else {
-                                    subscriber.onComplete();
-                                    break;
+
+                        // 진행이나 결과에 신경을 쓰지 않는다면
+                        es.execute(() -> {
+                                int j = 0;
+                                try {
+                                    while (j++ < n) {
+                                        if (i.hasNext()) {
+                                            subscriber.onNext(i.next());
+                                        } else {
+                                            subscriber.onComplete();
+                                            break;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    // Publisher 쪽에서 에러 난 경우 -> Subscriber 는 갑자기 에러가 확 날라오는게 아니라, onError 라는 것을 통해 (우아하게) 날아옴.
+                                    subscriber.onError(e);
                                 }
+
                             }
-                        } catch(Exception e) {
-                            // Publisher 쪽에서 에러 난 경우 -> Subscriber 는 갑자기 에러가 확 날라오는게 아니라, onError 라는 것을 통해 (우아하게) 날아옴.
-                            subscriber.onError(e);
-                        }
+
+                        );
+
+                        // 만약에 진행상황을 나중에 체크하고 싶다면, Callable 형태로 작성 + Future 로 받을 수 있다
+                        // Future : 비동기 작업 결과를 담고 있는 애.
+                        // 현재는 결과를 받아볼 필요가 없긴 하다. event 방식으로 날려버리니까.
+                        // 그런데 Future 는 중간에 cancle 이 가능하다. 중간에 subscriber 가 cancle 을 하고 싶은 경우, Future 를 통해 interrupt 를 날리면 된다.
+
+//                        Future<?> future = es.submit(() -> {
+//                            int j = 0;
+//                            try {
+//                                while (j++ < n) {
+//                                    if (i.hasNext()) {
+//                                        subscriber.onNext(i.next());
+//                                    } else {
+//                                        subscriber.onComplete();
+//                                        break;
+//                                    }
+//                                }
+//                            } catch (Exception e) {
+//                                // Publisher 쪽에서 에러 난 경우 -> Subscriber 는 갑자기 에러가 확 날라오는게 아니라, onError 라는 것을 통해 (우아하게) 날아옴.
+//                                subscriber.onError(e);
+//                            }
+//
+//                        });
 
                     }
 
@@ -94,9 +129,16 @@ public class PubSub {
             // 구독정보 Subscription 을 저장해두고
             Subscription subscription;
 
+            /*
+            * onSubscribe 는 어디서 동작하는가?
+            * subscribe() 를 한 스레드에서 동작한다 -> 이 경우는 main thread 가 될 것이다
+            * 그리고 해당 스레드 안에서 request 를 보내게 된다 ( 당연함. onSubscribe 내부에서 subscription 에 대한 요청을 보내니까 )
+            * 이 내부에서 새로운 스레드를 만들어서 그 안에서 request 를 날리도록 하는 것도 안된다. subscribe 스레드에서 request 까지 날려야 한다.
+            *
+            * */
             @Override
             public void onSubscribe(Subscription subscription) {
-                System.out.println("onSubscribe");
+                System.out.println("Subscriber onSubscribe : " + Thread.currentThread().getName());
 //                subscription.request(Long.MAX_VALUE);
                 this.subscription = subscription;
                 this.subscription.request(
@@ -105,7 +147,7 @@ public class PubSub {
 
             @Override
             public void onNext(Object item) {
-                System.out.println("onNext " + item);
+                System.out.println(Thread.currentThread().getName() + "onNext " + item);
                 // 뭔가 복잡한 처리 - Subscriber 의 현재 상황을 계산 -> 다음 request 로 요청할 n 값 계산
                 // 버퍼를 절반정도로 유지하도록 request 를 하게 코드를 작성하는 등
                 // 뒤에는 스케줄러가 등장함 -> 비동기적으로 병렬적으로 작업을 수행할 수 있다.
@@ -126,12 +168,25 @@ public class PubSub {
             }
         };
 
-        publisher.subscribe(
-            subscriber); // 이 순간 onsbuscribe 호출되고 끝. 그럼 내가 데이터를 받으려면 어떻게 해야하지? 나는 데이터를 어떻게(데이터 발급속도와, 데이터를 받아 처리할 수 있는 속도가 서로 다르기 때문에 - 생성자체를 지연시킬 수도 있음)  받겠어 라는 나의 의도를 얘기해야 한다
+        publisher.subscribe(subscriber); // 이 순간 onsbuscribe 호출되고 끝. 그럼 내가 데이터를 받으려면 어떻게 해야하지? 나는 데이터를 어떻게(데이터 발급속도와, 데이터를 받아 처리할 수 있는 속도가 서로 다르기 때문에 - 생성자체를 지연시킬 수도 있음)  받겠어 라는 나의 의도를 얘기해야 한다
 
+        es.awaitTermination(5, TimeUnit.SECONDS);
+        es.shutdown();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         one();
     }
 }
+
+/* 비동기적으로 날리는 코드
+    publisher 가 혼자 데이터를 다 날리니까 하는 일이 많아 보인다
+    "publisher 가 데이터를 날려주는 것" 을 동시에 여러 스레드에서 수행하는 것도 가능한가?
+    스펙상으로 불가능하게 되어있다.
+    subscriber 는 데이터가 sequential 하게 날아올 것을 기대하고, 그것과 관련된 동시성 문제를 신경쓰지 않도록 하고 있다.
+    subscribe 이후에 데이터가 날아오는 것 자체는, 한 순 간에 하나의 스레드에서만 날아올 것으로 기대하고 있으면 된다.
+    subscriber 하나에 대해서 onNext 하는 것은 하나의 스레드에서 쭉 이어지도록 하였다.
+    동시성과 관련된 이슈가 훨씬 많이 줄어들었다.
+    물론 동시에 여러 subscriber 가 생기는 것은 가능하다. ( 이 때는 각각의 스레드로 나누어 간다 )
+
+*/
