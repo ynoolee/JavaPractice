@@ -1,4 +1,4 @@
-package learningJava.reactive;
+package learningJava.reactive.streams;
 
 import java.util.Arrays;
 import java.util.Iterator;
