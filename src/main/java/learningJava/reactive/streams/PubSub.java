@@ -2,6 +2,7 @@ package learningJava.reactive.streams;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Flow.Publisher;
@@ -27,6 +28,8 @@ Publisher.subscribe(subscriber) 의 호출에 대한 응답으로 가능한 호�
 OnSubscribe(1번) onNext*(여러 번 가능) (onError | onComplete)?(선택적으로)
 
 즉 onSubscribe 는 subscribe 를 하는 즉시 호출해 줘야 한다.
+
+onError 또는 onComplete 가 호출되는 순간 subscription 은 끝나는 것이다
 *
 event 에 대응하는 방식이다.
 
@@ -39,7 +42,7 @@ Reactive Streams
 public class PubSub {
 
     public static void one() throws InterruptedException {
-        ExecutorService es = Executors.newSingleThreadExecutor();
+        ExecutorService es = Executors.newFixedThreadPool(10);
         // Observable --> Publisher
         // Observer -> Subscriber
 
@@ -125,57 +128,66 @@ public class PubSub {
         };
 
         // Subscription 을 통해 Publisher 와 계속 관계를 맺고 있을 수 있는건가?
-        Subscriber<Object> subscriber = new Subscriber<>() {
-            // 구독정보 Subscription 을 저장해두고
-            Subscription subscription;
+        Subscriber<Object> subscriber1 = new MySubscriber();
+        Subscriber<Object> subscriber2 = new MySubscriber();
 
-            /*
-            * onSubscribe 는 어디서 동작하는가?
-            * subscribe() 를 한 스레드에서 동작한다 -> 이 경우는 main thread 가 될 것이다
-            * 그리고 해당 스레드 안에서 request 를 보내게 된다 ( 당연함. onSubscribe 내부에서 subscription 에 대한 요청을 보내니까 )
-            * 이 내부에서 새로운 스레드를 만들어서 그 안에서 request 를 날리도록 하는 것도 안된다. subscribe 스레드에서 request 까지 날려야 한다.
-            *
-            * */
-            @Override
-            public void onSubscribe(Subscription subscription) {
-                System.out.println("Subscriber onSubscribe : " + Thread.currentThread().getName());
-//                subscription.request(Long.MAX_VALUE);
-                this.subscription = subscription;
-                this.subscription.request(
-                    1);  // 나는 1개까지 밖에 받을 수 없어 -> 그럼 1개 처리하고 나머지 4개는 어디서 받지? onNext
-            }
+        // 이런식으로 작성하게 되면 main 스레드가 아닌 ForkJoinPool 의 스레드에서 onSubscribe() 가 호출될 것이다
+        CompletableFuture.runAsync(() -> publisher.subscribe(subscriber1));
+        CompletableFuture.runAsync(() -> publisher.subscribe(subscriber2));
+//        publisher.subscribe(subscriber1); // 이 순간 onsbuscribe 호출되고 끝. 그럼 내가 데이터를 받으려면 어떻게 해야하지? 나는 데이터를 어떻게(데이터 발급속도와, 데이터를 받아 처리할 수 있는 속도가 서로 다르기 때문에 - 생성자체를 지연시킬 수도 있음)  받겠어 라는 나의 의도를 얘기해야 한다
+//        publisher.subscribe(subscriber2);
 
-            @Override
-            public void onNext(Object item) {
-                System.out.println(Thread.currentThread().getName() + "onNext " + item);
-                // 뭔가 복잡한 처리 - Subscriber 의 현재 상황을 계산 -> 다음 request 로 요청할 n 값 계산
-                // 버퍼를 절반정도로 유지하도록 request 를 하게 코드를 작성하는 등
-                // 뒤에는 스케줄러가 등장함 -> 비동기적으로 병렬적으로 작업을 수행할 수 있다.
-                this.subscription.request(1);
-                // onNext 에서는 Subscriber 의 상황에 따라, 다음 request 를 호출할지 말지를 결정하도록 코드를 작성할 수도있다
-            }
-
-            // Observer 와 달리 Complete 에 대한 처리가 가능함
-            @Override
-            public void onError(Throwable throwable) {
-                // 그럼 에러를 받아보고, 현재 Subscriber 상태에 따라, 처리 가능한 것인지 등등을 판단해보고 처리 할 수 있을 것. ( 재시도를 할 수도 있고 )
-                System.out.println("onError");
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("onComplete");
-            }
-        };
-
-        publisher.subscribe(subscriber); // 이 순간 onsbuscribe 호출되고 끝. 그럼 내가 데이터를 받으려면 어떻게 해야하지? 나는 데이터를 어떻게(데이터 발급속도와, 데이터를 받아 처리할 수 있는 속도가 서로 다르기 때문에 - 생성자체를 지연시킬 수도 있음)  받겠어 라는 나의 의도를 얘기해야 한다
-
-        es.awaitTermination(5, TimeUnit.SECONDS);
+        es.awaitTermination(3, TimeUnit.SECONDS);
         es.shutdown();
     }
 
     public static void main(String[] args) throws InterruptedException {
         one();
+    }
+
+    private static class MySubscriber implements Subscriber {
+
+        // 구독정보 Subscription 을 저장해두고
+        private Subscription subscription;
+
+        /*
+         * onSubscribe 는 어디서 동작하는가?
+         * subscribe() 를 한 스레드에서 동작한다 -> 이 경우는 main thread 가 될 것이다
+         * 그리고 해당 스레드 안에서 request 를 보내게 된다 ( 당연함. onSubscribe 내부에서 subscription 에 대한 요청을 보내니까 )
+         * 이 내부에서 새로운 스레드를 만들어서 그 안에서 request 를 날리도록 하는 것도 안된다. subscribe 스레드에서 request 까지 날려야 한다.
+         *
+         * */
+        @Override
+        public void onSubscribe(Subscription subscription) {
+            System.out.println("Subscriber onSubscribe : " + Thread.currentThread().getName());
+//                subscription.request(Long.MAX_VALUE);
+            this.subscription = subscription;
+            this.subscription.request(
+                1);  // 나는 1개까지 밖에 받을 수 없어 -> 그럼 1개 처리하고 나머지 4개는 어디서 받지? onNext
+        }
+
+        @Override
+        public void onNext(Object item) {
+            System.out.println(Thread.currentThread().getName() + " onNext " + item);
+            // 뭔가 복잡한 처리 - Subscriber 의 현재 상황을 계산 -> 다음 request 로 요청할 n 값 계산
+            // 버퍼를 절반정도로 유지하도록 request 를 하게 코드를 작성하는 등
+            // 뒤에는 스케줄러가 등장함 -> 비동기적으로 병렬적으로 작업을 수행할 수 있다.
+            this.subscription.request(1);
+            // onNext 에서는 Subscriber 의 상황에 따라, 다음 request 를 호출할지 말지를 결정하도록 코드를 작성할 수도있다
+        }
+
+        // Observer 와 달리 Complete 에 대한 처리가 가능함
+        @Override
+        public void onError(Throwable throwable) {
+            // 그럼 에러를 받아보고, 현재 Subscriber 상태에 따라, 처리 가능한 것인지 등등을 판단해보고 처리 할 수 있을 것. ( 재시도를 할 수도 있고 )
+            System.out.println("onError");
+        }
+
+        @Override
+        public void onComplete() {
+            System.out.println("onComplete");
+        }
+
     }
 }
 
@@ -190,3 +202,4 @@ public class PubSub {
     물론 동시에 여러 subscriber 가 생기는 것은 가능하다. ( 이 때는 각각의 스레드로 나누어 간다 )
 
 */
+
