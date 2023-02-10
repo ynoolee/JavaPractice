@@ -43,79 +43,81 @@ public class Operator {
 
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10)
             .collect(Collectors.toList()));
-//        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
+        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
 //        Publisher<Integer> sumPub = sumPub(pub);
         // 초기 데이터가 있음. 초기데이터에 어떤 함수를 갖고 연산을 해서 , 그 결과를 가지고 두 번째 데이터 연산을 하고... 최종 데이터에 대해서도 연산 한 그 결과만을 리턴하는 것.
-        Publisher<Integer> reducePub = reducePub(pub, 0, (BiFunction<Integer, Integer, Integer>)(a,b) -> a + b);
+//        Publisher<Integer> reducePub = reducePub(pub, 0, (BiFunction<Integer, Integer, Integer>)(a,b) -> a + b);
 
-        reducePub.subscribe(logSub());
+//        reducePub.subscribe(logSub());
+        mapPub.subscribe(logSub());
+
     }
 
-    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int init,
-        BiFunction<Integer, Integer, Integer> f) {
+//    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int init,
+//        BiFunction<Integer, Integer, Integer> f) {
+//
+//        return new Publisher<Integer>() {
+//            @Override
+//            public void subscribe(Subscriber<? super Integer> sub) {
+//                pub.subscribe(new DelegateSub(sub){
+//
+//                    int result = init;
+//
+//                    @Override
+//                    public void onNext(Integer i) {
+//                        result = f.apply(result, i);
+//                        System.out.println(String.format("onNext : %d", result));
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//                        sub.onNext(result);
+//                        sub.onComplete();
+//                    }
+//                });
+//            }
+//        };
+//    }
 
-        return new Publisher<Integer>() {
+//    private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
+//        return new Publisher<Integer>() {
+//            @Override
+//            public void subscribe(Subscriber<? super Integer> sub) {
+//                pub.subscribe(new DelegateSub(sub){
+//                    int sum = 0;
+//
+//                    @Override
+//                    public void onNext(Integer i) {
+//                        // onNext 에서는 현재 넘어온 데이터가 마지막 데이터인지를 알 방법이 없다
+//                        sum += i;
+//                        // 이렇게 한 번 더한 값을 그대로 sub.onNext(sum) 로 전달 해 버리면
+//                        // 이거는 sum 이 애초에 업스트림으로부터 온 데이터를 모두 더해서 그 결과 하나만을 down 으로 보내는 것과는 맞지 않게 된다
+//                        // 그렇다면 sub.onNext 는 어디에서 해야할까?
+//                    }
+//
+//                    @Override
+//                    public void onComplete() {
+//                        // 바로 여기!
+//                        // publisher 로부터 데이터가 모두 전달하고 나면 onComplete 이 호출된다
+//                        // 여기라고 onNext 를 호출하면 안되거나 하지는 않다.
+//                        sub.onNext(sum);
+//                        sub.onComplete();
+//                    }
+//                });
+//            }
+//        };
+//    }
+
+
+    private static <T> Publisher<T> mapPub(Publisher<T> pub, Function<T, T> f) {
+        return new Publisher<T>() {
             @Override
-            public void subscribe(Subscriber<? super Integer> sub) {
-                pub.subscribe(new DelegateSub(sub){
-
-                    int result = init;
-
-                    @Override
-                    public void onNext(Integer i) {
-                        result = f.apply(result, i);
-                        System.out.println(String.format("onNext : %d", result));
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        sub.onNext(result);
-                        sub.onComplete();
-                    }
-                });
-            }
-        };
-    }
-
-    private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
-        return new Publisher<Integer>() {
-            @Override
-            public void subscribe(Subscriber<? super Integer> sub) {
-                pub.subscribe(new DelegateSub(sub){
-                    int sum = 0;
-
-                    @Override
-                    public void onNext(Integer i) {
-                        // onNext 에서는 현재 넘어온 데이터가 마지막 데이터인지를 알 방법이 없다
-                        sum += i;
-                        // 이렇게 한 번 더한 값을 그대로 sub.onNext(sum) 로 전달 해 버리면
-                        // 이거는 sum 이 애초에 업스트림으로부터 온 데이터를 모두 더해서 그 결과 하나만을 down 으로 보내는 것과는 맞지 않게 된다
-                        // 그렇다면 sub.onNext 는 어디에서 해야할까?
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        // 바로 여기!
-                        // publisher 로부터 데이터가 모두 전달하고 나면 onComplete 이 호출된다
-                        // 여기라고 onNext 를 호출하면 안되거나 하지는 않다.
-                        sub.onNext(sum);
-                        sub.onComplete();
-                    }
-                });
-            }
-        };
-    }
-
-
-    private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f) {
-        return new Publisher<Integer>() {
-            @Override
-            public void subscribe(Subscriber<? super Integer> sub) {
+            public void subscribe(Subscriber<? super T> sub) {
                 // mapPub publisher 내부에서 새로운 Subscriber 를 추가
                 // 가장 좌측의 Publisher 로부터 데이터를 중간에서 받아오는 애
-                pub.subscribe(new DelegateSub(sub) {
+                pub.subscribe(new DelegateSub<T>(sub) {
                     @Override
-                    public void onNext(Integer item) {
+                    public void onNext(T item) {
                         sub.onNext(f.apply(item));
                     }
                 });
@@ -123,8 +125,8 @@ public class Operator {
         };
     }
 
-    private static Subscriber<Integer> logSub() {
-        return new Subscriber<Integer>() {
+    private static <T> Subscriber<T> logSub() {
+        return new Subscriber<T>() {
             @Override
             public void onSubscribe(Subscription subscription) {
                 System.out.println(String.format("onSubscribe:"));
@@ -134,7 +136,7 @@ public class Operator {
             }
 
             @Override
-            public void onNext(Integer item) {
+            public void onNext(T item) {
                 System.out.println(String.format("onNext: %d", item));
             }
 

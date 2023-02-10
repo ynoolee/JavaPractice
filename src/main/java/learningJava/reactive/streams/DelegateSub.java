@@ -3,10 +3,10 @@ package learningJava.reactive.streams;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
 
-public class DelegateSub implements Subscriber<Integer> {
+public class DelegateSub<T> implements Subscriber<T> {
     Subscriber sub;
 
-    public DelegateSub(Subscriber sub) {
+    public DelegateSub(Subscriber<? super T> sub) {
         this.sub = sub;
     }
 
@@ -16,9 +16,9 @@ public class DelegateSub implements Subscriber<Integer> {
     }
 
     @Override
-    public void onNext(Integer item) {
+    public void onNext(T i) {
 
-        sub.onNext(item);
+        sub.onNext(i);
     }
 
     @Override
