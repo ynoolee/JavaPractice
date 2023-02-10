@@ -37,7 +37,7 @@ public class Operator {
             .collect(Collectors.toList()));
         Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
         Publisher<Integer> map2Pub = mapPub(mapPub, s -> s * 10); // 최종적으로 Subscriber 에서 100배가 된 값을 받을 수 있게한다
-        mapPub.subscribe(logSub());
+        map2Pub.subscribe(logSub());
 
     }
 
@@ -47,26 +47,10 @@ public class Operator {
             public void subscribe(Subscriber<? super Integer> sub) {
                 // mapPub publisher 내부에서 새로운 Subscriber 를 추가
                 // 가장 좌측의 Publisher 로부터 데이터를 중간에서 받아오는 애
-                pub.subscribe(new Subscriber<Integer>() {
-                    @Override
-                    public void onSubscribe(Subscription subscription) {
-                        sub.onSubscribe(subscription);
-                    }
-
+                pub.subscribe(new DelegateSub(sub) {
                     @Override
                     public void onNext(Integer item) {
-
                         sub.onNext(f.apply(item));
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        sub.onError(throwable);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        sub.onComplete();
                     }
                 });
             }
