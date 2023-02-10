@@ -26,8 +26,10 @@ import java.util.stream.Stream;
                             -> onComplete
 
 
-
-
+2. sum 만들어보기
+ map 과는 특성이 다르다
+ map 은 upstream 으로부터 데이터들이 날아오면 그 데이터들을 가공하기는 하지만 각각을 모두 다시 down 으로 보내줬는데
+ sum 은 upstream 으로부터 데이터들이 날아와도 이들을 계산만 하고 있다가, 합계만 down 으로 주는 것.
  * */
 public class Operator {
 
@@ -35,11 +37,41 @@ public class Operator {
 
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10)
             .collect(Collectors.toList()));
-        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
-        Publisher<Integer> map2Pub = mapPub(mapPub, s -> s * 10); // 최종적으로 Subscriber 에서 100배가 된 값을 받을 수 있게한다
-        map2Pub.subscribe(logSub());
+//        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
+        Publisher<Integer> sumPub = sumPub(pub);
 
+        sumPub.subscribe(logSub());
     }
+
+    private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
+        return new Publisher<Integer>() {
+            @Override
+            public void subscribe(Subscriber<? super Integer> sub) {
+                pub.subscribe(new DelegateSub(sub){
+                    int sum = 0;
+
+                    @Override
+                    public void onNext(Integer i) {
+                        // onNext 에서는 현재 넘어온 데이터가 마지막 데이터인지를 알 방법이 없다
+                        sum += i;
+                        // 이렇게 한 번 더한 값을 그대로 sub.onNext(sum) 로 전달 해 버리면
+                        // 이거는 sum 이 애초에 업스트림으로부터 온 데이터를 모두 더해서 그 결과 하나만을 down 으로 보내는 것과는 맞지 않게 된다
+                        // 그렇다면 sub.onNext 는 어디에서 해야할까?
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        // 바로 여기!
+                        // publisher 로부터 데이터가 모두 전달하고 나면 onComplete 이 호출된다
+                        // 여기라고 onNext 를 호출하면 안되거나 하지는 않다.
+                        sub.onNext(sum);
+                        sub.onComplete();
+                    }
+                });
+            }
+        };
+    }
+
 
     private static Publisher<Integer> mapPub(Publisher<Integer> pub, Function<Integer, Integer> f) {
         return new Publisher<Integer>() {
