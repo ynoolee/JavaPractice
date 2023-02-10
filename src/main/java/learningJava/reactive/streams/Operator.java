@@ -1,9 +1,11 @@
 package learningJava.reactive.streams;
 
 import java.util.Iterator;
+import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Publisher;
 import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.Flow.Subscription;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +32,10 @@ import java.util.stream.Stream;
  map 과는 특성이 다르다
  map 은 upstream 으로부터 데이터들이 날아오면 그 데이터들을 가공하기는 하지만 각각을 모두 다시 down 으로 보내줬는데
  sum 은 upstream 으로부터 데이터들이 날아와도 이들을 계산만 하고 있다가, 합계만 down 으로 주는 것.
+
+
+ 3. reduce 만들어보기
+
  * */
 public class Operator {
 
@@ -38,9 +44,37 @@ public class Operator {
         Publisher<Integer> pub = iterPub(Stream.iterate(1, a -> a + 1).limit(10)
             .collect(Collectors.toList()));
 //        Publisher<Integer> mapPub = mapPub(pub, s -> s * 10); // src 가 되는 publisher 를 가지고 , 거기서 발송되는 항목들에 대한 function 을 적용한 스트림으로 변경한다
-        Publisher<Integer> sumPub = sumPub(pub);
+//        Publisher<Integer> sumPub = sumPub(pub);
+        // 초기 데이터가 있음. 초기데이터에 어떤 함수를 갖고 연산을 해서 , 그 결과를 가지고 두 번째 데이터 연산을 하고... 최종 데이터에 대해서도 연산 한 그 결과만을 리턴하는 것.
+        Publisher<Integer> reducePub = reducePub(pub, 0, (BiFunction<Integer, Integer, Integer>)(a,b) -> a + b);
 
-        sumPub.subscribe(logSub());
+        reducePub.subscribe(logSub());
+    }
+
+    private static Publisher<Integer> reducePub(Publisher<Integer> pub, int init,
+        BiFunction<Integer, Integer, Integer> f) {
+
+        return new Publisher<Integer>() {
+            @Override
+            public void subscribe(Subscriber<? super Integer> sub) {
+                pub.subscribe(new DelegateSub(sub){
+
+                    int result = init;
+
+                    @Override
+                    public void onNext(Integer i) {
+                        result = f.apply(result, i);
+                        System.out.println(String.format("onNext : %d", result));
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        sub.onNext(result);
+                        sub.onComplete();
+                    }
+                });
+            }
+        };
     }
 
     private static Publisher<Integer> sumPub(Publisher<Integer> pub) {
