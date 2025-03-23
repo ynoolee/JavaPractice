@@ -1,0 +1,15 @@
+[versions]
+junit = "5.8.1"
+mockito = "2.1.0"
+assertj = "3.20.2"
+guava = "31.1-jre"
+
+[libraries]
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[bundles]
+testing = ["junit-api", "mockito-core", "assertj-core"]
