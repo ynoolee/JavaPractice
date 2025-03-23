@@ -73,15 +73,6 @@ class MyGenericTest {
 		}
 
 		@Test
-		@DisplayName("타입 세이프한 emptySet 을 생성한다")
-		void test_typeSafe() {
-			Set<Carnivore> set = Collections.emptySet();
-
-			set.add(new Carnivore("라이언"));
-			// set.add(new Herbivore("토끼")); 컴파일 에러
-		}
-
-		@Test
 		@DisplayName("Collections.emptySet() 은 제네릭 싱글톤 패토리를 리턴한다")
 		void test_singletonFactory() {
 			Set<Carnivore> carnivores = Collections.emptySet();

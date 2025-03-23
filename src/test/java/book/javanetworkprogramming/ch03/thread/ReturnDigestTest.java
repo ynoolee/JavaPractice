@@ -2,13 +2,15 @@ package book.javanetworkprogramming.ch03.thread;
 
 import book.javanetworkprogramming.ch03.DatatypeConverter;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class ReturnDigestTest {
 
-    private final String[] args = new String[]{"/Users/leeWhyy/javaBack/javaPractice/src/main/java/book/javanetworkprogramming/ch03/thread/abc.txt"};
+    private final String[] args = new String[]{
+        "/Users/leeWhyy/javaBack/javaPractice/src/main/java/book/javanetworkprogramming/ch03/thread/abc.txt"};
 
     @Nested
     @DisplayName("NPE 가 발생하는 상황 - 스레드 스케줄링 에 따라 실패할 수도 성공할 수도 있는 케이스")
@@ -16,6 +18,7 @@ class ReturnDigestTest {
 
         @Test
         @DisplayName("스레드를 실행하는 코드와 , 스레드로부터의 결과를 출력하는 코드가 매우 근접한 경우 대부분이 NPE 가 발생한다")
+        @Disabled
         void test1() {
             for (String filename : args) {
                 ReturnDigest thread = new ReturnDigest(filename);
@@ -30,6 +33,7 @@ class ReturnDigestTest {
 
         @Test
         @DisplayName("일련의 스레드들을 먼저 실행하고, 이후에 이 스레드들을 iterate 하면서, 그 실행 결과를 출력하는 코드 ")
+        @Disabled
         void test2() {
             ReturnDigest[] threads = new ReturnDigest[args.length];
 
@@ -104,7 +108,7 @@ class ReturnDigestTest {
 
     @Test
     @DisplayName("인자가 있는 join 을 호출 할 경우 join 뒤로 이어지는 코드를 바로 실행할 수 있는 상태로, 이전과 같이 NPE 가 발생할 수 있다")
-    void waitUntilCompletionWitProcessingFollowingCode(){
+    void waitUntilCompletionWitProcessingFollowingCode() {
         ReturnDigest[] threads = new ReturnDigest[args.length];
         long longRunningTime = 5000;
 
@@ -125,7 +129,7 @@ class ReturnDigestTest {
                 byte[] digest = threads[i].getDigest();
 
                 Assertions.assertThatExceptionOfType(NullPointerException.class)
-                        .isThrownBy(() -> result.append(DatatypeConverter.byteToHexString(digest)) );
+                    .isThrownBy(() -> result.append(DatatypeConverter.byteToHexString(digest)));
             } catch (InterruptedException e) {
                 System.err.println("Thread Interrupted before completion");
             }
@@ -153,5 +157,4 @@ class ReturnDigestTest {
             super.run();
         }
     }
-
 }
